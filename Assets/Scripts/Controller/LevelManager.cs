@@ -17,7 +17,10 @@ namespace IG.Controller
         [SerializeField] private DatabaseManager databaseManager;
         [SerializeField] private UIManager uiManager;
         [SerializeField] private SpriteGridManager gridParentPrefab; // Grid parent to initialize on level load
-        
+
+        [SerializeField] private float timeLimit = 120f;
+        private float currentTime;
+        private bool timerRunning = false;
         private int _currentLevel;
         private SpriteGridManager _currentGridParent;
         private ScoreManager _scoreManager;
@@ -72,7 +75,33 @@ namespace IG.Controller
         private void Start() 
         {
             // We will play the level at start which is the last played (Not the last unlocked)
-            LoadLevel(_currentLevel);
+            int level = PlayerPrefs.GetInt("CurrentLevel", 1);
+            LoadLevel(level);
+
+            // ⏰ 타이머 시작
+            currentTime = timeLimit;
+            timerRunning = true;
+        }
+
+        // 타이머 기능만을 위한 update
+        private void Update()
+        {
+            if (!timerRunning) return;
+
+            currentTime -= Time.deltaTime;
+            UIManager.Instance.UpdateTimerUI(currentTime); // 남은 시간 UI 갱신
+
+            if (currentTime <= 0f)
+            {
+                timerRunning = false;
+                HandleTimeout(); // 시간 초과 처리
+            }
+        }
+
+        private void HandleTimeout()
+        {
+            Debug.Log("⏰ 타임오버! 게임 종료 및 초기화");
+            FindObjectOfType<IG.UI.Quit>().QuitAndReset(); // 리셋 종료
         }
 
         public void DestroyCurrentLevel() 
@@ -146,18 +175,19 @@ namespace IG.Controller
             //Save level data, unlocking new level, and score to database
             var minMoves = _currentLevelConfig.minMoves;
             var maxMoves = _currentLevelConfig.maxMoves;
+            // 점수 변수
             var score = _scoreManager.CalculateScore(minMoves, maxMoves);
             Debug.Log($"Level {_currentLevel}, Score {score}");
-            databaseManager.SaveLevelData(_currentLevel, score); 
+            databaseManager.SaveLevelData(_currentLevel, score);
 
             //If we have finished the level for the first time
             // Check for next level availability
-            if(_currentLevel.Equals(lastUnlockedLevel) 
-                && lastUnlockedLevel.Equals(MaxLevel)) 
+            if (_currentLevel.Equals(lastUnlockedLevel)
+                && lastUnlockedLevel.Equals(MaxLevel))
             {
                 Debug.Log("Last level");
             }
-
+            
             OnLevelCompleted?.Invoke(_currentLevel, score);
         }
     }

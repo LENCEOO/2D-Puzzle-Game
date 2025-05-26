@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 
 namespace IG.Controller
@@ -25,16 +26,16 @@ namespace IG.Controller
         public class StoredData // 모든 레벨 정보 포함
         {
             [HideInInspector] public int lastPlayedLevel = 1; // 마지막으로 실행된 레벨
-            public List<LevelData> levelDataList = new (); // 사용자가 클리어한 레벨들의 리스트
+            public List<LevelData> levelDataList = new(); // 사용자가 클리어한 레벨들의 리스트
         }
 
-        [SerializeField]private StoredData storedData;
+        [SerializeField] private StoredData storedData;
         private LevelManager _levelManager;
 
         public int LastUnlockedLevel
         {
-            get 
-            { 
+            get
+            {
                 // last unlocked level is the level which is not finished 
                 // so it's data will not be in the database
                 return storedData.levelDataList.Count + 1;
@@ -44,23 +45,23 @@ namespace IG.Controller
         //Get the last played level from stored data
         public int LastPlayedLevel
         {
-            get 
-            { 
+            get
+            {
                 return storedData.lastPlayedLevel;
             }
-            set 
+            set
             {
                 storedData.lastPlayedLevel = value;
                 WriteData();
             }
         }
 
-        private void OnEnable() 
+        private void OnEnable()
         {
             LevelManager.OnLevelLoaded += UpdateLastPlayedLevel;
         }
 
-        private void OnDisable() 
+        private void OnDisable()
         {
             LevelManager.OnLevelLoaded -= UpdateLastPlayedLevel;
         }
@@ -75,10 +76,10 @@ namespace IG.Controller
             _levelManager = levelManager;
 
             _path = Path.Combine(Application.persistentDataPath, JsonFileName);
-            
+
             // If required json file for database exists at the persistentDataPath then load the data
             // otherwise create the file
-            if(File.Exists(_path)) LoadData();
+            if (File.Exists(_path)) LoadData();
             else WriteData();
 
             return storedData.lastPlayedLevel;
@@ -91,21 +92,21 @@ namespace IG.Controller
 
             var levelData = GetLevelData(level);
 
-            if(levelData != null) 
+            if (levelData != null)
             {
-                if(levelData.topScore < score)
+                if (levelData.topScore < score)
                     levelData.topScore = score;
             }
-            else 
+            else
             {
-                storedData.levelDataList.Add(new LevelData() 
+                storedData.levelDataList.Add(new LevelData()
                 {
                     name = "Level " + level,
                     level = level,
                     topScore = score
                 });
             }
-            
+
             WriteData(); // JSON에 반영
         }
 
@@ -127,7 +128,7 @@ namespace IG.Controller
 
         public LevelData GetLevelData(int level) // 특정 level에 대한 데이터 가져오기
         {
-            if(storedData.levelDataList == null) return null;
+            if (storedData.levelDataList == null) return null;
             return storedData.levelDataList.Find(ld => ld.level == level);
         }
 
