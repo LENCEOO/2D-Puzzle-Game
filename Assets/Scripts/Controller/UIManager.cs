@@ -13,16 +13,13 @@ public class UIManager : MonoBehaviour
     public LevelScrollView levelScrollView;
     public ResultUI resultUI;
 
-    public LevelManager LevelManager {get; private set;}
-    public Text timerText; // UnityEngine.UI.Text
+    public LevelManager LevelManager { get; private set; }
+    public Text timerText;
     private DatabaseManager _databaseManager;
 
-    // 타이머 구현
-    public void UpdateTimerUI(float time)
-    {
-        if (timerText != null)
-            timerText.text = "Time: " + Mathf.CeilToInt(time).ToString();
-    }
+    // 총점 및 완료 텍스트
+    public TextMeshProUGUI totalScoreText;
+    public TextMeshProUGUI completionText;
 
     public static UIManager Instance { get; private set; }
 
@@ -43,7 +40,42 @@ public class UIManager : MonoBehaviour
         LevelManager = levelManager;
         _databaseManager = databaseManager;
 
-        levelScrollView.Initialize(this, _databaseManager.LastUnlockedLevel);
-        resultUI.Initialize(this);
+        levelScrollView?.Initialize(this, _databaseManager.LastUnlockedLevel);
+        resultUI?.Initialize(this);
+    }
+    // totalscore 표시
+    public void ShowTotalScore()
+    {
+        Debug.Log($"🔥 ShowTotalScore 실행됨");
+        if (totalScoreText != null && DatabaseManager.Instance != null)
+        {
+            int totalScore = DatabaseManager.Instance.GetTotalScore();
+            Debug.Log($"✅ 총점 계산됨: {totalScore}");
+            totalScoreText.text = "Total_Score: " + totalScore;
+            totalScoreText.gameObject.SetActive(true);
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ totalScoreText 또는 DatabaseManager.Instance가 null입니다.");
+        }
+    }
+
+    public void ShowCompletionMessage(string message)
+    {
+        if (completionText != null)
+        {
+            completionText.gameObject.SetActive(true);
+            completionText.text = message;
+        }
+        else
+        {
+            Debug.LogWarning("[UIManager] completionText가 설정되지 않았습니다.");
+        }
+    }
+
+    public void UpdateTimerUI(float time)
+    {
+        if (timerText != null)
+            timerText.text = "Time: " + Mathf.CeilToInt(time).ToString();
     }
 }

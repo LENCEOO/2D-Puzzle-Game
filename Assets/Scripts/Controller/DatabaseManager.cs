@@ -31,6 +31,43 @@ namespace IG.Controller
 
         [SerializeField] private StoredData storedData;
         private LevelManager _levelManager;
+        // levelscore 저장
+        public static DatabaseManager Instance { get; private set; }
+        private void Awake()
+        {
+            Debug.Log("DatabaseManager.Awake 호출됨");
+
+            if (Instance == null)
+            {
+                Instance = this;
+                DontDestroyOnLoad(gameObject);
+                Debug.Log("DatabaseManager 초기화 및 유지됨");
+            }
+            else
+            {
+                Debug.Log("중복된 DatabaseManager 제거됨");
+                Destroy(gameObject);
+            }
+        }
+        public List<int> levelScores = new List<int>();
+
+        public void SaveLevelScore(int score)
+        {
+            Debug.Log($"레벨 점수 저장: {score}");
+            levelScores.Add(score);
+        }
+
+        public int GetTotalScore()
+        {
+            int total = levelScores.Sum();
+            Debug.Log($"총점 계산: {total}");
+            return total;
+        }
+
+        public void ClearScores()
+        {
+            levelScores.Clear();
+        }
 
         public int LastUnlockedLevel
         {

@@ -166,28 +166,32 @@ namespace IG.Controller
             }
         }
 
-        public void CompleteLevel() // 회로 연결이 완료되었을 때
+        public void CompleteLevel()
         {
-            //Cache last unlocked level
             var lastUnlockedLevel = databaseManager.LastUnlockedLevel;
             Debug.Log($"last unlocked {lastUnlockedLevel}");
 
-            //Save level data, unlocking new level, and score to database
             var minMoves = _currentLevelConfig.minMoves;
             var maxMoves = _currentLevelConfig.maxMoves;
-            // 점수 변수
             var score = _scoreManager.CalculateScore(minMoves, maxMoves);
-            Debug.Log($"Level {_currentLevel}, Score {score}");
-            databaseManager.SaveLevelData(_currentLevel, score);
 
-            //If we have finished the level for the first time
-            // Check for next level availability
-            if (_currentLevel.Equals(lastUnlockedLevel)
-                && lastUnlockedLevel.Equals(MaxLevel))
-            {
-                Debug.Log("Last level");
-            }
+            Debug.Log($"Level {_currentLevel}, Score {score}");
+
+            // ✔️ 1. 항상 저장
+            databaseManager.SaveLevelData(_currentLevel, score);
+            databaseManager.SaveLevelScore(score);
+
+            // ✔️ 2. 마지막 레벨이면 총점 표시
+            Debug.Log($"Check 조건: currentLevel={_currentLevel}, lastUnlocked={lastUnlockedLevel}, MaxLevel={MaxLevel}");
             
+            if (_currentLevel.Equals(MaxLevel))
+            {
+                Debug.Log("✅ 마지막 레벨 클리어");
+                databaseManager.SaveLevelScore(score);
+                UIManager.Instance.ShowCompletionMessage("Last Level Cleared!");
+                UIManager.Instance.ShowTotalScore();
+            }
+
             OnLevelCompleted?.Invoke(_currentLevel, score);
         }
     }
